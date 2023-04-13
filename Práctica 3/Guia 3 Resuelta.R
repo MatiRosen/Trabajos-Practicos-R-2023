@@ -489,6 +489,9 @@ divisibles <- function(v, x){
   w = v
   for (i in 1:length(v)){
     if (!is.numeric(v[i])) return("Todos los elementos del vector deben ser numeros")
+    
+    # Si dividimos el elemento en la posicion actual por x, y el resto es 0, entonces
+    # es divisible y reemplazamos ese elemento por 'DIV'
     if (v[i] %% x == 0){
       w[i] = 'DIV'
     }
@@ -510,14 +513,19 @@ cuadrado <- function(a){
     return(FALSE)
   } 
   
+  # Si la raiz cuadrada del numero es un numero entero, entonces devuelve true. Sino false.
+  # Para saber si es numero entero, redondeamos la raiz cuadrada con 0 decimales.
   return(sqrt(a) == round(sqrt(a)))
 }
 
 matrizCuadradoPerfecto <- function(A){
   if (!is.matrix(A)) return("El argumento debe ser una matriz")
   
+  # Recorremos la matriz
   for (i in 1:length(A)){
     if (!is.numeric(A[i])) return("Todos los elementos de la matriz deben ser numeros")
+    
+    # Al elemento actual le damos el valor TRUE o FALSE, segun lo que devuelva la funcion cuadrado.
     A[i] = cuadrado(A[i])
   }
   return(A)
@@ -533,9 +541,13 @@ matrizCuadradoPerfecto(matriz)
 detecta <- function(A){
   if (!is.matrix(A)) return("El argumento debe ser una matriz")
   B = A
+  
+  # Recorremos los elementos de la matriz.
   for (i in 1:length(A)){
     if (!is.numeric(A[i])) return("Todos los elementos de la matriz deben ser numeros")
     
+    # Si el elemento es cuadrado perfecto, entonces lo reemplazamos en la matriz
+    # B por 'CP'.
     if (cuadrado(A[i])){
       B[i] = 'CP'
     }
@@ -550,13 +562,20 @@ detecta(matriz)
 # un nuevo vector w. con los elementos de este vector construir un nuevo vector u que
 # contenga todos los productos posibles formados por 2 elementos distintos de w.
 # Reportar el vector u.
+
 contieneElemento <- function(v, k){
   if (length(v) == 0) return(FALSE)
+  
+  # Recorremos el vector
   for (i in 1:length(v)){
+    
+    # Si el elemento actual es igual al valor k, devolvemos true
     if (v[i] == k){
       return(TRUE)
     }
   }
+  
+  # Si no se devolvió true significa que el vector no contiene k, devolvemos false.
   return(FALSE)
 }
 
@@ -564,7 +583,10 @@ eliminarRepetidos <- function(v){
   if (!is.vector(v)) return("El argumento debe ser un vector.")
   
   w = c()
+  # Recorremos el vector
   for (i in 1:length(v)){
+    # Si el vector w no contiene el elemento actual, lo agregamos. Si lo contiene
+    # no lo agregamos ya que estaría repetido.
     if (!contieneElemento(w, v[i])){
       w = append(w, v[i])
     }
@@ -574,12 +596,21 @@ eliminarRepetidos <- function(v){
 
 productosPosibles <- function(v){
   if (!is.vector(v)) return("El argumento debe ser un vector.")
-  w = eliminarRepetidos(v)
   
+  # Guardamos en el vector w el vector v pero sin elementos repetidos.
+  w = eliminarRepetidos(v)
   u = c()
+  
+  # Recorremos el vector w
   for (i in 1:length(w)){
     if (!is.numeric(w[i])) return("Todos los argumentos del vector deben ser numeros")
+    
+    # Recorremos el vector w, pero desde el elemento i hasta el ultimo.
     for (j in i:length(w)){
+      
+      # Si j != i significa que no es el primer elemento, y por lo tanto guardo
+      # el producto entre el elemento en la posicion i y el elemento en la posicion
+      # j en el vector u.
       if (j != i){
         u = append(u, w[i] * w[j])
       }
@@ -600,13 +631,23 @@ productosPosibles(c(1,2,3,3, 4))
 
 filaDentroDe <- function(v, a, b){
   if (b == 0) return(FALSE)
+  
+  # Obtengo los puntos (x, y) a partir del vector v.
   x = v[1]
   y = v[2]
   
+  # Si x o y son menores a 0, no puede estar entre los ejes cartesianos y la recta,
+  # ya que la misma tiene pendiente negativa con valores a y b positivos.
   if (x < 0 || y < 0) return(FALSE)
+  
+  # Sumando +1e-10 podemos evitar tener problemas de redondeo. No lo vimos asi que no lo uso.
   #if (y > a-b*x + 1e-10) return(FALSE)
+  
+  # Si el valor y es mayor a la recta, estamos por encima de esta.
   if (y > a-b*x) return(FALSE)
   
+  # Si nada de lo anterior ocurre, significa que estamos entre los ejes cartesianos
+  # y la recta.
   return(TRUE)
 }
 
@@ -614,13 +655,18 @@ dentroDe <- function(A, param){
   if (!is.matrix(A) || ncol(A) != 2) return("El primer argumento debe ser una matriz de n*2")
   if (!is.vector(param) || length(param) != 2) return("El segundo argumento debe ser un vector con 2 elementos")
   
+  # Recorremos todas las filas de la matriz.
   for (i in 1:nrow(A)){
+    # Para cada fila, nos fijamos si los puntos estan entre los ejes y la recta.
+    # En caso de que lo estén, los mostramos por pantalla.
     if (filaDentroDe(A[i,], param[1], param[2])){
       print(A[i, ])
     }
   }
 }
 matriz = matrix(c(-1,2,3,16,5, 6, 1, 3, 0, 12, 2, 0, 2.1, 0, 0, 12.1, 0, 11.9, 1.6, 2, 1, 6), ncol=2, byrow = TRUE); matriz
+
+# Comprobar: https://www.geogebra.org/calculator/parttuhe
 dentroDe(matriz, c(12, 6))
 #-------------------------------------------------------------------------------
 # Ejercicio 20
@@ -635,9 +681,19 @@ contiguos <- function(v){
   if (!is.vector(v)) return("El argumento debe ser un vector.")
   
   w = c()
+  # Recorremos el vector.
   for (i in 1:length(v)){
+    # Obtenemos la raiz del elemento actual redondeada a numero entero.
     raiz = floor(sqrt(v[i]))
+    
+    # Si el producto de la raiz y la raiz + 1 es el elemento actual, entonces
+    # se cumple lo que buscamos.
+    # Por ejemplo: La raiz de 56 es 7.48, redondeando a numero entero es 7. 
+    # 7 * 8 = 56. Cumple.
     if (raiz * (raiz+1) == v[i]){
+      
+      # Guardamos en el vector w la posicion del elemento que cumple, junto a los
+      # numeros contiguos.
       w = append(w, c(i, raiz, raiz+1))
     }
   }
@@ -655,17 +711,25 @@ contiguos(c(2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 15, 16, 18, 20, 56))
 # números del vector a. La cantidad de elementos del vector b deberá ser, entonces n+1.
 
 generadorDeVectoresAleatorios <- function(n){
+  # Generamos n numeros aleatorios entre 0 y 100 y lo redondeamos a numero entero.
   a = round(runif(n, 0, 100))
   print(a)
   return(a)
 }
 
 generarVector <- function(n){
+  # Obtenemos un vector a de longitud n con numeros enteros entre 0 y 100
   a = generadorDeVectoresAleatorios(n)
+  
+  # Iniciamos un vector b, siendo el primer elemento 1.
   b = c(1)
+  
+  # Recorremos el vector a.
   for (i in 1:length(a)){
-    # Conociendo si i es par o impar puedo alternar entre sumar y restar.
+    # Conociendo si i es par o impar puedo alternar entre sumar y restar. Para
+    # saber si es par, dividimos i por 2 y vemos el resto.
     if (i %% 2 == 0){
+      # Agregamos en el vector b el elemento actual de a + el elemento actual de b.
       b = append(b, b[i] + a[i])
     } else{
       b = append(b, b[i] - a[i])
@@ -740,10 +804,17 @@ esPrimoOPar(A)
 # Recuerde que dos condiciones pueden incluirse utilizando el símbolo “&”. 
 
 tirarDado <- function(k, n, s){
+  # Inicio 2 variables en 0.
   cantTiradas = 0
   sumaTiradas = 0
+  
+  # Itero mientras la cantidad de tiradas hechas sea menor a 0 y la suma de las
+  # tiradas hechas sea menor a s.
   while(cantTiradas < n && sumaTiradas < s){
+    # Sumo las sumas tiradas anteriormente + un valor random entre 1 y k.
     sumaTiradas = sumaTiradas + sample(k, 1)
+    
+    # Sumo 1 a la cantidad de tiradas.
     cantTiradas = cantTiradas + 1
   }
   
