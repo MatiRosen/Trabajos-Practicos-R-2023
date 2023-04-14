@@ -3,7 +3,11 @@
 # varianza 5. Si el valor generado es menor a la media, mostrar en la pantalla la
 # palabra “inferior” (string de caracteres) y si es superior, indicar “superior”.
 
+# Generamos el numero aleatorio con dist. normal, media 4 y var 5.
 x = rnorm(1,4,sqrt(5)) ; x
+
+# Se lee como: si x es menor a 4, imprimir "inferior". Sino, si x es mayor a 4, 
+# imprimir "superior". Sino imprimir "iguales"
 if (x < 4){
   print("inferior")
 } else if (x > 4){
@@ -17,10 +21,18 @@ if (x < 4){
 # menor a la media calculada, reemplazar el elemento por un cero. Si es mayor,
 # reemplazar el elemento por un uno.
 
+# Usamos round para redondear a 2 decimales los elementos del vector.
 v = round(rnorm(10, 4, sqrt(5)), 2); v
 media = mean(v) ; media
+
+# Creamos una variable i, la cual va cambiando su valor entre 1 y la longitud
+# del vector v. El valor cambia cada vez que se cierra la llave del for, y se 
+# repite todo lo que esta entre llaves, hasta que i llega al ultimo valor.
 for (i in 1:length(v)){
+  # Con v[i] obtenemos el elemento del vector en la posicion i, que depende de
+  # lo explicado arriba.
   if (v[i] < media){
+    # Reemplazamos el elemento i del vector por 0.
     v[i] = 0
   } else if (v[i] > media){
     v[i] = 1
@@ -34,11 +46,15 @@ v
 # correspondiente de v es inferior a la media.
 v = round(rnorm(10, 4, sqrt(5)), 2); v
 media = mean(v) ; media
+
+# Creamos un vector vacio.
 w = c()
 for (i in 1:length(v)){
   if (v[i] < media){
     w[i] = "I"
   } else if (v[i] > media){
+    # Con append agregamos el elemento "S" al vector w. En este caso, es lo mismo que
+    # hacer w[i] = "S"
     w = append(w, "S")
   }
 }
@@ -66,10 +82,18 @@ if (suma > 481.712){
 # nueva matriz (1 si es mayor o igual; 0 si es menor).
 
 nums = round(rnorm(12, 37, 9), 0)
+
+# Generamos una matriz A con los elementos del vector num, y la matriz B con elementos
+# del 1 al 12, todos consecutivos.
 A = matrix(nums, 3, 4) ; A
 B = matrix(1:12, 3, 4)
+
+# Recorremos primero las filas de la matriz A
 for (i in 1:nrow(A)){
+  # Despues recorremos las columnas de la matriz A.
   for (j in 1:ncol(A)){
+    
+    # Accedemos a la posicion [i, j] de la matriz A.
     if (A[i, j] >= 35){
       B[i, j] = 1
     } else{
@@ -119,6 +143,9 @@ v
 k = runif(1, 76, 245) ; k
 suma = 0
 contador = 0
+
+# While hace que se repita el codigo entre llaves hasta que no se cumpla mas la condición,
+# en este caso, se repite hasta que la suma deje de ser menor a k.
 while (suma < k){
   suma = suma + runif(1)
   contador = contador + 1
