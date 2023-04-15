@@ -338,7 +338,7 @@ bubble_sort <- function(x, orden = 0){
       
       # Si el orden es 0, comprobamos que el numero actual sea menor al anterior.
       # Si es 1, comprobamos que el numero actual sea mayor al anterior.
-      if (orden == 0 && x[i] < anterior || orden == 1 && x[i] > anterior){
+      if ((orden == 0 && x[i] < anterior) || (orden == 1 && x[i] > anterior)){
         x[i-1] = x[i]
         x[i] = anterior
         permutacion = TRUE
