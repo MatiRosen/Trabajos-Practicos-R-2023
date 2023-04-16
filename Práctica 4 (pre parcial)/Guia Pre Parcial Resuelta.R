@@ -361,10 +361,11 @@ mensaje_oculto <- function(v){
   w = c()
   cantVocales = 0
   
-  # Recorremos el vector y obtenemos que letra representa cada numero, usando el vector
-  # letters. Ademas comprobamos que el numero sea menor o igual a 26
+  # Recorremos el vector y obtenemos que letra representa a cada numero, usando el vector
+  # letters. Ademas comprobamos que el numero sea menor o igual a 26, ya que solo hay
+  # 26 letras.
   for (i in 1:length(v)){
-    if (v[i] > 26) return("El numero debe ser menor a 26.")
+    if (v[i] <= 0 || v[i] > 26) return("El numero debe ser mayor a 0 y menor a 26.")
     w[i] = letters[v[i]]
     if (es_vocal(w[i])) cantVocales = cantVocales + 1
   }
@@ -384,7 +385,62 @@ mensaje_oculto(c(13, 1, 20, 9, 18, 15, 19, 5, 14))
 # letras y a los dígitos (el 0 se sustituye con el 2, el 9 con el 1,..).
 # Diseña un programa que lea un vector de letra / número y el valor de
 # "n" y muestre su versión criptográfiada.
+obtenerPosLetra <- function(x){
+  for (i in 1:length(letters)){
+    if (letters[i] == x){
+      return(i)
+    }
+  }
+  
+  return(0)
+}
 
+obtenerValorOculto <- function(x, n){
+  if (!is.numeric(n)) return("El segundo argumento debe ser un numero")
+  
+  # Si x es un numero, entonces le sumamos n.
+  if (is.numeric(x)){
+    x = x + n
+    # En caso de que el numero obtenido sea mayor a 9, le restamos 10, ya que queremos
+    # que sea un numero entre 0 y 9.
+    if (x > 9){
+      x = x - 10
+    }
+    
+    # Si no es un numero y es una letra, obtenemos la posicion de la letra.
+  } else if (is.character(x)){
+    pos = obtenerPosLetra(x)
+    
+    # A la posicion le sumamos n, y en caso de que sea mayor a la cantidad de letras,
+    # le restamos esta cantidad.
+    pos = pos + n
+    if (pos > length(letters)){
+      pos = pos - length(letters)
+    }
+    
+    # Le asignamos a x la letra en la posicion pos.
+    x = letters[pos]
+  }
+  return(x)
+}
+
+# obtenerValorOculto(9, 2)
+
+criptografia <- function(v, n){
+  if (!is.vector(v)) return("El primer argumento debe ser un vector")
+  if (!is.numeric(n)) return("El segundo argumento debe ser un numero")
+  
+  w = c()
+  # Recorremos el vector y le sumamos al vector w el elemento oculto
+  for (i in 1:length(v)){
+    w = append(w, obtenerValorOculto(v[i], n))
+  }
+  
+  return(w)
+}
+
+criptografia(c("h", "o", "l", "w"), 4)
+criptografia(c(0,1,2,3,9), 2)
 #-------------------------------------------------------------------------------
 # Ejercicio 10)
 # Define una función que devuelva el número de días que tiene un año determinado.
@@ -397,6 +453,33 @@ mensaje_oculto(c(13, 1, 20, 9, 18, 15, 19, 5, 14))
 # bisiesto: el número 2000 es divisible por 4 y, aunque es divisible por 100, también lo
 # es por 400).
 
+# Primero comprobamos si el año 'x' es divisible por el numero 'y'
+es_divisible <- function(x, y){
+  if (!is.numeric(x) || !is.numeric(y)) return("Los argumentos deben ser numeros")
+  
+  # Si el resto es 0, entonces es divisible. Sino no.
+  return(x%%y == 0)
+}
+
+# Aca comprobamos si el año es bisiesto.
+es_bisiesto <- function(x){
+  if (!is.numeric(x)) return("El argumento debe ser un numero (año)")
+  
+  # Si es divisible por 4 y no es divisible por 100, devuelve true. Si es divisible
+  # por 4 y es divisible por 400, entonces tambien devuelve true. Sino, devuelve false
+  return(es_divisible(x, 4) && (!es_divisible(x, 100) || es_divisible(x, 400)))
+}
+
+numero_dias <- function(x){
+  if (!is.numeric(x)) return("El argumento debe ser un numero (año)")
+  
+  # Los años bisiestos tienen 366 dias, mientras que los no bisiestos tienen 365.
+  if (es_bisiesto(x)){
+    return(366)
+  } else return(365)
+}
+
+numero_dias(1900)
 #-------------------------------------------------------------------------------
 # Ejercicio 11)
 
@@ -414,7 +497,52 @@ mensaje_oculto(c(13, 1, 20, 9, 18, 15, 19, 5, 14))
 # b=c(1,0,1,0,0,1,1) bin_to_int(b)=83
 # b=c(1,1,0,1,1,0,1) bin_to_int(b)=109
 
+# Damos vuelta el vector para poder trabajar como se hace con los numeros binarios.
+# Existe el metodo rev() para esto, pero lo hacemos asi para ver como se haría.
+voltear_vector <- function(b){
+  if (!is.vector(b)) return("El argumento debe ser un vector.")
+  
+  
+  # Creamos un vector auxiliar que va a ser igual al vector b.
+  v = b
+  # Recorremos el vector b
+  for (i in 1:length(b)){
+    # Si por ejemplo i es 1, y el vector tiene 4 elementos, en la posicion 1
+    # ponemos el elemento 4. Pero esto debe ser generalizado. Si estamos en
+    # la posicion 2, i es 2, por lo tanto hay que reemplazar i por 3. 
+    # Para obtener el valor por el cual hay que reemplazar, usamos el tamaño del
+    # vector, le restamos i y le sumamos 1.
+    v[i] = b[length(b) - i + 1]
+  }
+  
+  return(v)
+}
 
+bin_to_int <- function(b){
+  if (!is.vector(b)) return("El argumento debe ser un vector")
+  
+  # Los numeros binarios se leen de derecha a izquierda, pero nuestro vector va de
+  # izquierda a derecha. Por lo tanto, o damos vuelta el vector, o trabajamos 
+  # al revés. Voy a optar por la primera opcion.
+  b = voltear_vector(b)
+  
+  num = 0
+  # Recorremos el vector
+  for (i in 1:length(b)){
+    if (!is.numeric(b[i])) return("Todos los elementos del vector deben ser numeros")
+    
+    # Multiplicamos el elemento actual por 2 elevado a la posicion - 1 y se 
+    # lo sumamos al numero guardado
+    potencia = i - 1
+    num = num + b[i] * 2^potencia
+  }
+  
+  return(num)
+}
+
+b=c(1,1,0,1) ; bin_to_int(b)
+b=c(1,0,1,0,0,1,1) ; bin_to_int(b)
+b=c(1,1,0,1,1,0,1) ; bin_to_int(b)
 
 # Segunda Parte (sacada de la guía anterior)
 # Idem anterior pero ahora la función se llamará "int_to_bin(n)" y deberá transformar
@@ -426,9 +554,42 @@ mensaje_oculto(c(13, 1, 20, 9, 18, 15, 19, 5, 14))
 # b=c(1,0,1,0,0,1,1) bin_to_int(b)=83
 # b=c(1,1,0,1,1,0,1) bin_to_int(b)=109
 
+int_to_bin <- function(n){
+  if (!is.numeric(n)) return("El argumento debe ser un numero")
+  
+  # Creamos un vector donde pondremos los resultados de la division redondeados
+  # sin decimales hacia abajo. El primer elemento siempre sea n
+  v = c(n)
+  
+  # Dividimos mientras n sea mayor a 1
+  while(n > 1){
+    aux = floor(n/2)
+    n = aux
+    v = append(v, aux)
+  }
+  
+  # Ahora que ya tenemos los enteros, reemplazamos los pares por 0 y los impares
+  # por 1.
+  for(i in 1:length(v)){
+    if (v[i] %% 2 == 0){
+      v[i] = 0
+    } else{
+      v[i] = 1
+    }
+  }
+  
+  # Y recordamos que los numeros binarios se escriben de derecha a izquierda, asi
+  # que volteamos el vector y lo devolvemos.
+  
+  return(voltear_vector(v))
+}
 
+int_to_bin(109)
 #-------------------------------------------------------------------------------
 # Ejercicio 12)
+# En el programa R, para eliminar un elemento se pone un signo menos en la posición
+# del elemento a eliminar. Por ejemplo v = [3 2 2 14] w = v[-c(3)] = [3 2 14]
+
 # Dado un vector de números enteros positivos v (dato) eliminar los elementos
 # repetidos generando un nuevo vector w.
 # Note que cada vez que se elimina un elemento la longitud de vector cambia, por lo
@@ -436,6 +597,51 @@ mensaje_oculto(c(13, 1, 20, 9, 18, 15, 19, 5, 14))
 # eliminar los 0s.
 # v = [3 2 2 14 3] w = [3 2 14] 
 
+es_entero_positivo <- function(v){
+  if (!is.vector(v)){
+    print("El argumento debe ser un vector")
+    return(FALSE)
+  } 
+  
+  # Si el elemento no es un numero, o es menor igual a 0, o no es entero, devuelve false
+  for (i in 1:length(v)){
+    if (!is.numeric(v[i]) || v[i] <= 0 || v[i] != round(v[i])) return(FALSE)
+  }
+  
+  return(TRUE)
+}
+
+contiene_elemento <- function(v, n){
+  if (!is.vector(v)) return(F)
+  
+  # Recorremos el vector y chequeamos si el elemento ya estaba. Devolvemos true si es asi.
+  for (i in 1:length(v)){
+    if (v[i] == n) return(TRUE)
+  }
+  
+  # Si llegamos hasta aca es porque no se repite, devuelve false.
+  return(FALSE)
+}
+
+eliminar_repetidos <- function(v){
+  if (!es_entero_positivo(v)) return("El argumento debe ser un vector de numeros enteros positivos")
+  
+  # Creamos un vector w vacio.
+  w = c()
+  
+  # Recorremos el vector v.
+  for (i in 1:length(v)){
+    elemento_actual = v[i]
+    # Si el vector w no tiene el elemento actual, lo agregamos. Sino no
+    if (!contiene_elemento(w, elemento_actual)){
+      w = append(w, elemento_actual)
+    }
+  }
+  
+  return(w)
+}
+
+eliminar_repetidos(c(3, 2, 2, 14, 3))
 #-------------------------------------------------------------------------------
 # Ejercicio 13)
 # Escriba un programa "espejo" que genere a partir de una matriz cualquiera a otra
@@ -443,13 +649,70 @@ mensaje_oculto(c(13, 1, 20, 9, 18, 15, 19, 5, 14))
 # será respecto de un eje vertical si el argumento eje = 1 y respecto de un eje horizontal
 # si el argumento eje = 2. Si encuentra un comando para hacerlo, no lo use. 
 
+# En este ejercicio voy a usar la funcion voltear_vector() creado en el ejercicio 11.
+# Por defecto eje es 1.
+espejo <- function(A, eje = 1){
+  if (!is.matrix(A)) return("El primer argumento debe ser una matriz")
+  if (eje != 1 && eje != 2) return("El segundo argumento debe ser 1 o 2")
+  
+  # Generamos una matriz con todos 0 del mismo tamaño que A.
+  B = matrix(0, nrow(A), ncol(A))
+  
+  # Si eje es 1, recorremos por fila. Si es 2, por columna
+  if (eje == 1){
+    for (i in 1:nrow(A)){
+      # En la fila i, ponemos el vector dado vuelta
+      B[i,] = voltear_vector(A[i,])
+    }
+  } else if(eje == 2){
+    for (i in 1:ncol(A)){
+      # En la columna i, ponemos el vector dado vuelta
+      B[, i] = voltear_vector(A[, i])
+    }
+  }
+  
+  return(B)
+}
+
+M = matrix(c(1:12), 4); M
+espejo(M, 1)
 #-------------------------------------------------------------------------------
 # Ejercicio 14)
 # Escribir un programa "índices" que extraiga de una matriz todos los elementos que
 # tengan la suma de sus dos índices (de fila y columna) múltiplos de a. El reporte
 # deberá ser un vector indicando fila y columna para cada valor extraído.
 
+# Hacemos una funcion que nos dice si a es multiplo de b
+es_multiplo <- function(a, b){
+  if (!is.numeric(a) || !is.numeric(b)) return("Los argumentos deben ser numeros")
+  
+  # Si a es multiplo de b, entonces debe ser divisible por b
+  return(a %% b == 0)
+}
 
+indices <- function(A, a){
+  if (!is.matrix(A)) return("El primer argumento debe ser una matriz")
+  if (!is.numeric(a)) return("El segundo argumento debe ser un numero")
+  
+  v = c()
+  
+  # Recorremos la matriz primero por fila y luego por columna
+  for (i in 1:nrow(A)){
+    for (j in 1:ncol(A)){
+      # Nos fijamos si la suma del indice 'i' y el indice 'j' es multiplo de a.
+      # Si lo es, agregamos el elemento, su fila y su columna al vector.
+      if(es_multiplo(i + j, a)){
+        v = append(v, c(A[i, j], i, j))
+      }
+    }
+  }
+  
+  return(v)
+}
+M = matrix(c(1:12), 4); M
+# Devolvera primero el elemento de la matriz cuyos indices son multiplos de 3, seguido
+# por la fija y la columna de ese elemento.
+indices(M, 3)
 #-------------------------------------------------------------------------------
 # Ejercicio 15)
 # Escribir un programa "intervalo" que tenga como argumento una matriz A de enteros
@@ -458,7 +721,47 @@ mensaje_oculto(c(13, 1, 20, 9, 18, 15, 19, 5, 14))
 # número b, ambos argumentos del mismo. El reporte deberá ser un vector indicando
 # para cada valor encontrado, fila y columna. Si hay valores repetidos incluir todos.
 
+# Verificamos que todos los elementos de la matriz sean numeros enteros y positivos.
+# Para eso, usamos la funcion es_entero_positivo() del ejercicio 12.
+matriz_entero_positivo <- function(A){
+  if (!is.matrix(A)){
+    print("El argumento debe ser una matriz")
+    return(FALSE)
+  } 
+  
+  for (i in 1:nrow(A)){
+    # Si la fila no es entera positiva, devolvemos false
+    if (!es_entero_positivo(A[i, ])) return(FALSE)
+  }
+  
+  # Si el programa llega hasta aca, es true.
+  return(TRUE)
+}
 
+intervalo <- function(A, a, b){
+  if (!is.matrix(A) || !matriz_entero_positivo(A)) 
+    return("El primer argumento debe ser una matriz entera positiva")
+  
+  if (!is.numeric(a) || !is.numeric(b)) return("El segundo y tercer argumento deben ser numeros")
+  
+  v = c()
+  
+  # Recorremos la matriz por fila y columna
+  for (i in 1:nrow(A)){
+    for (j in 1:ncol(A)){
+      elemento_actual = A[i, j]
+      # Si el elemento actual cumple los requisitos, lo agregamos al vector v, 
+      # junto a su indice fila y columna.
+      if (elemento_actual >= a && elemento_actual <= b){
+        v = append(v, c(elemento_actual, i, j))
+      }
+    }
+  }
+  
+  return(v)
+}
+M = matrix(c(1:12), 3, byrow = TRUE); M
+intervalo(M, 3, 8)
 #-------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------
@@ -475,6 +778,54 @@ mensaje_oculto(c(13, 1, 20, 9, 18, 15, 19, 5, 14))
 # Escriba una función que reciba como argumento las posiciones en el tablero de un
 # alfil y de una torre, e indique cuál pieza captura a la otra.
 
+
+ajedrez <- function(alfil, torre){
+  if (!is.vector(alfil) || !is.vector(torre)) return("Los argumentos deben ser vectores")
+  
+  # Obtenemos los indices en el que se encuentra cada pieza
+  fila_alfil = alfil[1]
+  col_alfil = alfil[2]
+  
+  fila_torre = torre[1]
+  col_torre = torre[2]
+  
+  # Verificamos que los indices estren entre 1 y 8
+  if (fila_alfil < 1 || fila_alfil > 8 || col_alfil < 1 || col_alfil > 8) 
+    return("El alfil no entra en el tablero")
+  
+  if (fila_torre < 1 || fila_torre > 8 || col_torre < 1 || col_torre > 8) 
+    return("La torre no entra en el tablero")
+  
+  # Verificamos que no esten en la misma posicion
+  if (fila_alfil == fila_torre && col_torre == col_alfil) return("Las piezas estan en el mismo lugar")
+  
+  # Genero una matriz simulando el ajedrez para poder verlo graficamente.
+  A = matrix(".", 8, 8)
+  A[fila_alfil, col_alfil] = "A"
+  A[fila_torre, col_torre] = "T"
+  print(A)
+  
+  # La torre se puede comer al alfil si alguno de sus indices coincide.
+  if (fila_alfil == fila_torre || col_torre == col_alfil) return("La torre se come al alfil")
+  
+  # El alfil se come a la torre si está en diagonal. Para saber si está en diagonal, el indice
+  # de la torre debe ser (n, n) veces el del alfil. Pero tambien puede ser (n, -n) veces.
+  # Por lo tanto, lo importante es el modulo de la resta, y no la resta en si.
+  if (abs(fila_alfil - fila_torre) == abs(col_alfil - col_torre))
+    return("El alfil se come a la torre")
+  
+  return("Ninguna se come")
+}
+
+ajedrez(c(5, 3), c(2, 3)) # La torre se come al alfil porque estan en la misma columna
+ajedrez(c(5, 3), c(5, 8)) # La torre se come al alfil porque estan en la misma fila
+
+ajedrez(c(5, 3), c(6, 4)) # El alfil se come a la torre
+ajedrez(c(8, 8), c(1, 1)) # El alfil se come a la torre
+ajedrez(c(5, 4), c(3, 6)) # El alfil se come a la torre
+ajedrez(c(2, 3), c(3, 2)) # El alfil se come a la torre
+
+ajedrez(c(3, 6), c(2, 4)) # Ninguno se come
 #-------------------------------------------------------------------------------
 # Ejercicio 17)
 # Diseña una función que, dada una lista de números enteros, devuelva el número de
@@ -483,6 +834,31 @@ mensaje_oculto(c(13, 1, 20, 9, 18, 15, 19, 5, 14))
 # Por ejemplo, el vector [1, 1, 8, 8, 8, 8, 0, 0, 0, 2, 10, 10] tiene 5 "series" (tener en
 # cuenta que el 2 forma parte de una "serie" de un solo elemento)
 
+series <- function(v){
+  if (!is.vector(v)) return("El argumento debe ser un vector")
+  
+  # Iniciamos una variable en 1
+  cant = 0
+  
+  # Recorremos el vector
+  for (i in 1:length(v)){
+    # Si estamos en el primer elemento, sumamos uno a la serie ya que siempre sera
+    # una serie.
+    if (i == 1){
+      cant = cant + 1
+    } else{
+      # Si no es uno, comprobamos que si elemento actual es igual al anterior.
+      # Si no lo es, significa que es otra serie.
+      if (v[i] != v[i-1]){
+        cant = cant + 1
+      }
+    }
+  }
+  
+  return(cant)
+}
+
+series(c(1, 1, 8, 8, 8, 8, 0, 0, 0, 2, 10, 10))
 #-------------------------------------------------------------------------------
 # Ejercicio 18)
 
@@ -494,6 +870,24 @@ mensaje_oculto(c(13, 1, 20, 9, 18, 15, 19, 5, 14))
 # indica la distribución uniforme.
 # Ejemplo: prob(100000,5) aprox. 0.5
 
+prob <- function(n, k){
+  if (!is.numeric(n) || !is.numeric(k)) return("Los argumentos deben ser numeros")
+  # Redondeamos para arriba con ceiling
+  v = ceiling(runif(n, 1, 10))
+  
+  apariciones = 0
+  # Recorremos el vector para buscar apariciones de numeros menores a k
+  for (i in 1:length(v)){
+    if (v[i] <= k){
+      apariciones = apariciones + 1
+    }
+  }
+  
+  # Devolvemos la cantidad de apariciones dividido la cantidad de numeros.
+  return(apariciones / n)
+}
+
+prob(100000,5)
 # Segunda Parte
 # Idem anterior pera ahora se desea verificar el comando rchisq. Para probarlo se debe
 # escribir una función prob2(n,gl,k).
@@ -502,19 +896,26 @@ mensaje_oculto(c(13, 1, 20, 9, 18, 15, 19, 5, 14))
 # k sea la que indica la distribución chi cuadrado con gl grados de libertad.
 # Ejemplo: prob2(100000,5,7) aprox 0.7793597
 
+prob2 <- function(n, gl, k){
+  if (!is.numeric(n) || !is.numeric(k) || !is.numeric(gl)) return("Los argumentos deben ser numeros")
+  # Redondeamos para arriba con ceiling
+  v = rchisq(n, gl)
+  
+  apariciones = 0
+  # Recorremos el vector para buscar apariciones de numeros menores a k
+  for (i in 1:length(v)){
+    if (v[i] <= k){
+      apariciones = apariciones + 1
+    }
+  }
+  
+  # Devolvemos la cantidad de apariciones dividido la cantidad de numeros.
+  return(apariciones / n)
+}
+
+prob2(100000,5,7)
 #-------------------------------------------------------------------------------
 # Ejercicio 19)
-# En el programa R, para eliminar un elemento se pone un signo menos en la posición
-# del elemento a eliminar. Por ejemplo v = [3 2 2 14] w = v[-c(3)] = [3 2 14]
-# Dado un vector de números enteros positivos v (dato) eliminar los elementos
-# repetidos generando un nuevo vector w.
-# Note que cada vez que se elimina un elemento la longitud de vector cambia, por lo
-# tanto se sugiere reemplazar en un primer paso todos los repetidos por 0 y luego
-# eliminar los 0s.
-# v = [3 2 2 14 3] w = [3 2 14]
-
-#-------------------------------------------------------------------------------
-# Ejercicio 22)
 # Escriba un programa "cercano" cuyo argumento sea una matriz de n filas y 2
 # columnas que representan coordenadas x e y en el plano cartesiano. El otro argumento
 # del programa será un par ordenado v representando las coordenadas de un punto en el
@@ -528,8 +929,274 @@ mensaje_oculto(c(13, 1, 20, 9, 18, 15, 19, 5, 14))
 # punto más cercano, los valores x e y del punto y la distancia de dicho punto al punto
 # dato v.
 
+cercano <- function(A, v){
+  if (!is.matrix(A) || ncol(A) != 2) return("El primer argumento debe ser una matriz n * 2")
+  if (!is.vector(v) || length(v) != 2) return("El segundo argumento debe ser un vector de 2 elementos.")
+  
+  # Obtengo los puntos x e y del vector v
+
+  x = v[1]
+  y = v[2]
+  
+  # Creo un vector donde la minima distancia y los datos seran los del primer elemento.
+  # La distancia será guardada en v[4], la cual será usada mas tarde.
+  v = c(1, A[1, 1], A[1, 2], sqrt((x - A[1, 1])^2 + (y - A[1, 2])^2))
+  
+  # Si la longitud del vector es 1, devuelve el vector encontrado.
+  if (nrow(A) == 1) return(v)
+  # Recorro desde la segunda fila, ya que la primera ya está puesta.
+  for (i in 2:nrow(A)){
+    # Para cada fila, obtengo los puntos y los guardo en las variables auxiliares
+    x_aux = A[i, 1]
+    y_aux = A[i, 2]
+    
+    # Obtengo la distancia entre el punto actual y el punto pasado por parametro
+    distancia_actual = sqrt((x - x_aux)^2 + (y - y_aux)^2)
+    
+    # No hace falta, pero vamos a poner que la distancia minima es la menor entre
+    # la distancia actual y la minima anterior, usando el comando min()
+    minima_distancia = min(distancia_actual, v[4])
+    
+    # Si la minima distancia es la distancia actual, debo sobre-escribir el vector.
+    if (minima_distancia == distancia_actual){
+      v = c(i, x_aux, y_aux, minima_distancia)
+    }
+  }
+  
+  return(v)
+}
+
+M = matrix(1:16, ncol = 2) ; M
+cercano(M, c(5,10))
 #-------------------------------------------------------------------------------
-# Ejercicio 24)
+# Ejercicio 20)
 # Escribir un programa "diagonales" que extraiga de una matriz A cuadrada cualquiera
 # los vectores formados por sus diagonales secundarias y por la contradiagonal. Si
 # encuentra un comando para hacerlo, no lo use.
+
+# Vamos a suponer que las diagonales secundarias son las que no son la principal...
+diagonales <- function(A){
+  if (!is.matrix(A) || nrow(A) != ncol(A)) return("El argumento debe ser una matriz cuadrada")
+  
+  # Creamos una matriz donde pondremos las diagonales.La matriz será de 3 x la cantidad
+  # de filas de A
+  B = matrix(0, 3, nrow(A))
+  
+  # Vamos a rotar la matriz 3 veces para obtener la diagonal principal.
+  # Para eso usamos la funcion espejo() del ej 13.
+  for (i in 1:3){
+    if (i == 2){
+      A = espejo(A, 2)
+    } else{
+      A = espejo(A, 1)
+    }
+    
+    # Ahora obtenemos la diagonal principal y lo guardamos en la matriz B.
+    for (j in 1:nrow(A)){
+      for (k in 1:ncol(A)){
+        if (j == k){
+          B[i, j] = A[j, k]
+        }
+      }
+    }
+  }
+  
+  
+  return(B)
+}
+
+M = matrix(1:16,4, byrow = T) ; M
+diagonales(M)
+
+# Ejercicio 21)
+# Primera Parte
+# Se pide escribir una función "multiplo(b,k)" que verifique si un número x y los
+# números que surgen del mismo son múltiplos de un número "k" dado (entero
+# positivo).
+# Por números que surgen de x se entiende los números que se forman tomando los
+# dígitos de x en forma secuencial y acumulativa de izquierda a derecha.
+# Por ejemplo del número 3948743 surgen los números: 3, 39, 394, 3948, 39487,
+# 394874 y 3948743
+# Para encontrar dichos números hay 2 alternativas:
+# Dividir x por las potencias crecientes de x comenzando de la potencia 0 y tomar el
+# redondeo del resultado hacia abajo
+# floor(3948743/1) = 3948743
+# floor(3948743/10) = 394874
+# floor(3948743/100) = 39487
+# ...
+# floor(3948743/1000000) = 3
+# floor(3948743/10000000) = 0 - > este no se usa
+# Otra posibilidad es ingresar el número como vector de dígitos
+# x = c(3, 9, 4, 8, 7, 4, 3)
+# Ejemplo:
+#  multiplo(3948743,2)= c(394874, 3948, 394)
+
+# Hago una funcion que me convierta numeros a un vector como pide el enunciado.
+num_a_vector <- function(b){
+  if (!is.numeric(b)){
+    print("El argumento debe ser un numero.")
+    return(b)
+  }
+  
+  v = c()
+  
+  contador = 0
+  x = b
+  # Repito, mientras b sea mayor a 0, la logica que dice el enunciado.
+  while(b > 0){
+    b = floor(x / 10^contador)
+    if (b != 0){
+      v = c(b, v)
+    }
+    contador = contador + 1
+  }
+  return(v)
+}
+
+multiplo <- function(b, k){
+  if (!is.numeric(b) || !is.numeric(k)) return("Los argumentos deben ser numeros.")
+  
+  # Obtengo un vector a partir del numero b.
+  v = num_a_vector(b)
+  w = c()
+  
+  # Recorro el vector
+  for (i in 1:length(v)){
+    # Si el elemento actual es multiplo de k, lo agrego a w
+    if (v[i] %% k == 0){
+      w = append(w, v[i])
+    }
+  }
+  return(w)
+}
+
+multiplo(3948743,2)
+
+#Segunda Parte
+# Idem anterior pero ahora la función se llamará "multiplo2(b,k)" y deberá considerar
+# como números que surgen de x a los números que se forman tomando los dígitos de x
+# en forma secuencial y acumulativa de izquierda a derecha y de derecha a izquierda.
+# Por ejemplo para el número 3948743 surgen los números:
+# 3, 39, 394, 3948, 39487, 394874, 3948743, 3, 43, 743, 8743, 48743, 948743, 3948743
+# (no importa si aparecen repetidos)
+# Ejemplos:
+#  multiplo2(3948743,4)= c(3948)
+
+# Hago una funcion para separar el numero en varios numeros.
+separar_numeros <- function(x){
+  if (!is.numeric(x)){
+    print("El argumento debe ser un numero.")
+    return(x)
+  }
+  
+  digitos = c()
+  
+  # Itero mientras x sea mayor a 0
+  while (x > 0) {
+    # Guardo el resto de dividir x por 10 en la primera posicion del vector.
+    # Por ejemplo, si el numero es 423, lo divido por 10 y me da modulo 3. Este 3
+    # lo pongo en la posicion 1 del vector digitos.
+    # De esta manera puedo obtener el ultimo numero del numero...
+    digitos = c(x %% 10, digitos)
+    
+    # Ahora a x le resto el numero que agregue al vector. Quedaría 42, y empieza
+    # el ciclo nuevamente
+    x = x %/% 10
+  }
+  
+  return(digitos)
+}
+
+revertir_numero <- function(b){
+  if (!is.numeric(b)){
+    print("El argumento debe ser un numero.")
+    return(b)
+  }
+  
+  # Separo los numeros y los guardo en el vector v.
+  v = separar_numeros(b)
+  
+  # Ahora doy vuelta el vector
+  w = c()
+  for (i in 1:length(v)){
+    w[i] = v[length(v) - i + 1]
+  }
+  
+  # Y junto los numeros del vector
+  # La cantidad de digitos es la longitud de w. Voy a multiplicar cada numero
+  # por 10 elevado a la longitud menos la posicion en la que se encuentra, y sumarle el resto de numeros.
+  # Por ejemplo, en el vector (4, 5), multiplico 4 por 10, que da 40. Luego multiplico
+  # 5 por 1, que da 5. Luego los sumo y obtengo 45.
+  num = 0
+  for (i in 1:length(w)){
+    num = num + w[i] * 10^(length(w) - i) 
+  }
+  
+  return(num)
+}
+
+
+obtener_vector_der_izq <- function(x){
+  if (!is.numeric(x)){
+    print("El argumento debe ser un numero.")
+    return(x)
+  } 
+  
+  # Doy vuelta el numero
+  x = revertir_numero(x)
+  # Obtengo un vector a partir del numero
+  v = separar_numeros(x)
+  w = c()
+  
+  # Recorro el vector v
+  for (i in 1:length(v)){
+    # Hago una variable num que empieza en 0.
+    num = 0
+    # Recorro los elementos del vector desde 1 hasta i. Entonces a num le sumo
+    # el numero en la posicion i-j+1. Por ejemplo:
+    # Si el numero es 234, entonces hace esto:
+    # Cuando i es 1, le sumo a num 0 + (2*10^0) = 2.
+    # Cuando i es 2, sumo: 0 + (3*10^1 + 2*10^0) = 32
+    # Cuando i es 3, sumo 0 + (4 * 10^2 + 3 * 10^1 + 2 * 10 ^0) = 432
+    for (j in 1:i){
+      num = num + v[i-j+1] * 10^(i - j) 
+     
+    } 
+    
+    # Cada iteracion voy sumando los valores al vector w.
+    w = append(w, num)
+  }
+  
+  return(w)
+}
+
+
+multiplo2 <- function(b, k){
+  if (!is.numeric(b) || !is.numeric(k)) return("Los argumentos deben ser numeros.")
+  
+  # Obtengo un vector a partir del numero b.
+  v = num_a_vector(b)
+  
+  # Ahora le tengo que agregar al vector, lo mismo pero de derecha a izquierda.
+  v = append(v, obtener_vector_der_izq(b))
+  w = c()
+  # Recorro el vector
+  for (i in 1:length(v)){
+    # Si el elemento actual es multiplo de k, lo agrego a w
+    if (v[i] %% k == 0){
+      w = append(w, v[i])
+    }
+  }
+  return(w)
+}
+
+multiplo2(3948743,4)
+
+
+
+# Extra: Como obtener cantidad de digitos de un numero:
+obtener_cant_digitos <- function(x){
+  if (x == 0) return(1)
+  return(floor(log10(x)+1))
+}
+obtener_cant_digitos(100)
